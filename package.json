@@ -1,0 +1,79 @@
+{
+  "name": "studydeck",
+  "version": "0.2.0",
+  "description": "StudyDeck - an open source flashcard app: Anki deck import, spaced repetition, progress, plugins.",
+  "main": "main.js",
+  "author": "StudyDeck contributors",
+  "license": "GPL-3.0-or-later",
+  "homepage": "https://github.com/YOUR-GITHUB-NAME/studydeck",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YOUR-GITHUB-NAME/studydeck.git"
+  },
+  "scripts": {
+    "start": "electron .",
+    "test": "node test/stage2-test.js && node test/core-test.js && node test/unit-test.js",
+    "dist": "electron-builder --win nsis dir",
+    "dist:linux": "electron-builder --linux AppImage",
+    "dist:mac": "electron-builder --mac dmg zip",
+    "test:ui": "bash test/run-ui-test.sh",
+    "make-update": "node tools/make-update.js"
+  },
+  "build": {
+    "appId": "org.studydeck.app",
+    "productName": "StudyDeck",
+    "directories": {
+      "output": "StudyDeck"
+    },
+    "files": [
+      "main.js",
+      "app-main.js",
+      "preload.js",
+      "package.json",
+      "core/**/*",
+      "renderer/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "plugins-example",
+        "to": "plugins-example"
+      }
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "dir"
+      ],
+      "artifactName": "StudyDeck-Setup.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "deleteAppDataOnUninstall": false,
+      "include": "build/installer.nsh"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "artifactName": "StudyDeck.AppImage",
+      "category": "Education"
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "category": "public.app-category.education"
+    }
+  },
+  "devDependencies": {
+    "electron": "^45.4.1",
+    "electron-builder": "^26.18.0"
+  },
+  "dependencies": {
+    "fflate": "^0.8.3",
+    "sql.js": "^1.17.0"
+  }
+}

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' sd-media: data:; media-src sd-media:; font-src sd-media:; frame-src about:">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>StudyDeck</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav id="nav">
+    <div class="brand">StudyDeck</div>
+    <button data-page="home" class="active">Home</button>
+    <button data-page="decks">Decks</button>
+    <button data-page="friends">Friends</button>
+    <button data-page="progress">Progress</button>
+    <button data-page="plugins">Plugins</button>
+    <button data-page="settings">Settings</button>
+  </nav>
+  <main id="main">
+    <section id="home" class="page active"></section>
+    <section id="decks" class="page"></section>
+    <section id="study" class="page"></section>
+    <section id="friends" class="page"></section>
+    <section id="progress" class="page"></section>
+    <section id="plugins" class="page"></section>
+    <section id="settings" class="page"></section>
+  </main>
+  <div id="drop-overlay" hidden>Drop your Anki deck files here</div>
+  <script src="app.js"></script>
+</body>
+</html>

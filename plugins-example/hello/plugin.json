@@ -1,0 +1,7 @@
+{
+  "id": "hello",
+  "name": "Hello Plugin (example)",
+  "version": "1.0.0",
+  "description": "Shows how a StudyDeck plugin looks. Copy this folder to learn from it.",
+  "main": "index.js"
+}
