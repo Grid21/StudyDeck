@@ -1,23 +1,24 @@
 {
   "name": "studydeck",
-  "version": "0.2.0",
+  "version": "0.7.0",
   "description": "StudyDeck - an open source flashcard app: Anki deck import, spaced repetition, progress, plugins.",
   "main": "main.js",
   "author": "StudyDeck contributors",
   "license": "GPL-3.0-or-later",
-  "homepage": "https://github.com/YOUR-GITHUB-NAME/studydeck",
+  "homepage": "https://github.com/Grid21/StudyDeck",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/YOUR-GITHUB-NAME/studydeck.git"
+    "url": "git+https://github.com/Grid21/StudyDeck.git"
   },
   "scripts": {
     "start": "electron .",
-    "test": "node test/stage2-test.js && node test/core-test.js && node test/unit-test.js",
+    "test": "node test/stage2-test.js && node test/friends-test.js && node test/discord-test.js && node test/sync-test.js && node test/push-test.js && node test/gh-updates-test.js && node test/edit-test.js && node test/core-test.js && node test/unit-test.js",
     "dist": "electron-builder --win nsis dir",
     "dist:linux": "electron-builder --linux AppImage",
     "dist:mac": "electron-builder --mac dmg zip",
     "test:ui": "bash test/run-ui-test.sh",
-    "make-update": "node tools/make-update.js"
+    "make-update": "node tools/make-update.js",
+    "server": "node server/server.js"
   },
   "build": {
     "appId": "org.studydeck.app",

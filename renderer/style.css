@@ -78,3 +78,13 @@ table.decks td.actions { text-align:right; white-space:nowrap; width:170px; }
 
 #drop-overlay { position:fixed; inset:0; background:rgba(59,110,245,.88); color:#fff; font-size:26px; display:flex; align-items:center; justify-content:center; z-index:10; }
 #drop-overlay[hidden] { display:none; }
+
+input.text, input[type=text], input[type=search], textarea, select { padding:8px 10px; border-radius:8px; border:1px solid var(--line); background:var(--bg); color:var(--text); font-size:15px; }
+input.text { min-width:180px; } input.text.wide { width:100%; }
+.code { font-size:20px; letter-spacing:.08em; padding:4px 10px; border:1px dashed var(--line); border-radius:8px; }
+.row.check { gap:8px; margin:4px 0; }
+tr.me td { font-weight:700; background:rgba(108,147,255,.12); }
+
+#update-banner:empty { display: none; }
+#update-banner { padding: 8px 16px 0; }
+textarea { font-family: inherit; resize: vertical; } #browse label { display: block; margin: 6px 0; }

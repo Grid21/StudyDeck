@@ -8,7 +8,7 @@ const { execFileSync } = require('child_process');
 const root = path.join(__dirname, '..');
 const { Store } = require('../core/store');
 const { parseApkg } = require('../core/apkg');
-const { renderCard } = require('../core/render');
+const { renderCard, soundsOf } = require('../core/render');
 const updatepkg = require('../core/updatepkg');
 const fflate = require('../core/vendor/fflate.js');
 
@@ -38,6 +38,18 @@ for (const fx of ['korean-legacy.apkg', 'korean-modern.apkg']) {
     store.close();
   });
 }
+
+ok('sounds: every sound of a side is listed in order, and the answer leaves out the question\'s', () => {
+  assert.deepStrictEqual(soundsOf('a [sound:x y.mp3] b [sound:z.mp3]', 7, false), ['sd-media://i7/x%20y.mp3', 'sd-media://i7/z.mp3']);
+  assert.deepStrictEqual(soundsOf('[sound:q.mp3]<hr id=answer>[sound:a.mp3] [sound:b.mp3]', 7, true), ['sd-media://i7/a.mp3', 'sd-media://i7/b.mp3']);
+  assert.deepStrictEqual(soundsOf('<audio src="https://example.com/x.mp3"></audio>', 7, false), [], 'web addresses are never played');
+  const dir = path.join(tmp, 'snd'); fs.mkdirSync(dir);
+  const store = new Store(path.join(dir, 'db.sqlite'), path.join(dir, 'media'));
+  store.importCollection(parseApkg(path.join(__dirname, 'fixtures', 'korean-modern.apkg'), fs.mkdtempSync(path.join(tmp, 'w-'))), { name: 'x' });
+  const row = store.db.prepare("SELECT c.id FROM cards c JOIN notes n ON n.id=c.note_id WHERE n.fields LIKE '%[sound:%'").get();
+  if (row) { const d = store.getCardData(row.id); const r = renderCard(d.ctx, d.importId); assert.ok(r.qSounds.length + r.aSounds.length >= 1, 'the card lists its sound'); assert.ok(!/autoplay/i.test(r.question + r.answer)); }
+  store.close();
+});
 
 const upd = path.join(tmp, 'out');
 const made = execFileSync('node', [path.join(root, 'tools', 'make-update.js'), '--notes', 'test update', '--out', upd]).toString().trim().split('  ')[0];

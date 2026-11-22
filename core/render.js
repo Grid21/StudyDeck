@@ -139,7 +139,8 @@ function sanitize(html) {
 
 function isLocal(u) { return !/^(?:[a-z][a-z0-9+.-]*:|\/\/|#)/i.test(u); }
 
-function mediaUrl(name, importId) { return `sd-media://${importId}/${encodeURIComponent(name)}`; }
+// The address host is "i<number>", not a bare number: browsers read "1" as the IP address 0.0.0.1.
+function mediaUrl(name, importId) { return `sd-media://i${importId}/${encodeURIComponent(name)}`; }
 
 function rewriteMedia(html, importId) {
   let out = html.replace(/\[sound:([^\]]+)\]/g, (m, f) => `<audio controls preload="none" src="${mediaUrl(f, importId)}"></audio>`);
@@ -149,6 +150,23 @@ function rewriteMedia(html, importId) {
     return isLocal(src) ? `${pre}${q}${mediaUrl(name, importId)}${q}` : m;
   });
   return out;
+}
+
+// The sounds of one side of a card, in order, as sd-media addresses: [sound:file] tags and <audio>/<source> tags.
+// On the answer side, sounds that belong to the question (above the answer divider) are left out, like Anki does,
+// so the question is not read out a second time.
+function soundsOf(html, importId, answerSide) {
+  let part = html;
+  if (answerSide) { const m = /<hr\s+id=["']?answer["']?\s*\/?>/i.exec(html); if (m) part = html.slice(m.index + m[0].length); }
+  const found = [];
+  const re = /\[sound:([^\]]+)\]|<(?:audio|source)\b[^>]*?\ssrc\s*=\s*(["'])(.*?)\2/gi;
+  let m;
+  while ((m = re.exec(part))) {
+    let name = m[1] !== undefined ? m[1] : m[3];
+    if (m[1] === undefined) { if (!isLocal(name)) continue; try { name = decodeURIComponent(name); } catch { /* keep */ } }
+    found.push(mediaUrl(name, importId));
+  }
+  return found;
 }
 
 function rewriteCss(css, importId) {
@@ -169,10 +187,10 @@ function renderCard(ctx, importId) {
   const wrap = (body) => `<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="${FRAME_CSP}">` +
     `<style>${BASE_CSS}${css.replace(/<\/style/gi, '')}</style></head><body class="card card${ctx.ord + 1}"><div class="card">` +
     `${rewriteMedia(sanitize(body), importId)}</div></body></html>`;
-  return { question: wrap(q.html), answer: wrap(a.html), typeExpected: q.typeExpected !== null ? q.typeExpected : a.typeExpected };
+  return { question: wrap(q.html), answer: wrap(a.html), qSounds: soundsOf(sanitize(q.html), importId, false), aSounds: soundsOf(sanitize(a.html), importId, true), typeExpected: q.typeExpected !== null ? q.typeExpected : a.typeExpected };
 }
 
 // Short plain-text preview of a note (first field), for lists
 function preview(fields) { return stripHtml((fields && fields[0]) || '').slice(0, 120); }
 
-module.exports = { renderCard, renderSide, renderCloze, clozeNumbers, sanitize, rewriteMedia, stripHtml, preview, esc };
+module.exports = { soundsOf, renderCard, renderSide, renderCloze, clozeNumbers, sanitize, rewriteMedia, stripHtml, preview, esc };

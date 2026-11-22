@@ -125,16 +125,9 @@ function mediaMap(small) {
 
 // Parses a deck file. `tmpDir` must be an empty folder that you remove afterwards.
 // Media files are written to tmpDir/media with their real names.
-function parseApkg(file, tmpDir) {
-  const rawDir = path.join(tmpDir, 'raw');
-  const mediaDir = path.join(tmpDir, 'media');
-  fs.mkdirSync(rawDir, { recursive: true });
-  fs.mkdirSync(mediaDir, { recursive: true });
-  const small = extractZip(file, rawDir);
-
-  const dbName = ['collection.anki21b', 'collection.anki21', 'collection.anki2'].find((n) => small[n]);
-  if (!dbName) throw new ImportError('This file does not contain an Anki collection. Is it an .apkg or .colpkg file?');
-  const db = openCollection(maybeZstd(small[dbName]), tmpDir);
+// Reads the cards and notes out of a collection database (bytes). Used for .apkg files and for synced collections.
+function readCollection(dbBytes, tmpDir, dbName) {
+  const db = openCollection(dbBytes, tmpDir);
   const warnings = [];
   let data;
   try {
@@ -144,8 +137,10 @@ function parseApkg(file, tmpDir) {
     const notes = db.prepare('select id,guid,mid,tags,flds from notes').all().map((n) => ({
       id: n.id, guid: String(n.guid), mid: n.mid, tags: splitTags(n.tags), fields: String(n.flds).split('\x1f')
     }));
-    const cards = db.prepare('select id,nid,did,ord,type,queue,due,ivl,factor,reps,lapses,odid,odue from cards').all().map((c) => ({ ...c }));
-    data = { ...base, notes, cards, crt };
+    const cards = db.prepare('select id,nid,did,ord,mod,usn,type,queue,due,ivl,factor,reps,lapses,"left",odid,odue,flags,data from cards').all().map((c) => ({ ...c }));
+    const cnt = (t) => (tables.has(t) ? db.prepare(`select count(*) c from ${t}`).get().c : null);
+    const serverCounts = { cards: cnt('cards'), notes: cnt('notes'), revlog: cnt('revlog'), notetypes: cnt('notetypes'), decks: cnt('decks'), deckConfig: cnt('deck_config') };
+    data = { ...base, notes, cards, crt, serverCounts };
   } catch (e) {
     if (e instanceof ImportError) throw e;
     throw new ImportError('The deck could not be read (' + e.message + ').');
@@ -155,6 +150,19 @@ function parseApkg(file, tmpDir) {
     throw new ImportError('This deck was saved by a newer Anki without the new data inside. In Anki, export it again.');
   }
   if (!data.notes.length) throw new ImportError('This deck has no cards in it.');
+  return { data, warnings };
+}
+
+function parseApkg(file, tmpDir) {
+  const rawDir = path.join(tmpDir, 'raw');
+  const mediaDir = path.join(tmpDir, 'media');
+  fs.mkdirSync(rawDir, { recursive: true });
+  fs.mkdirSync(mediaDir, { recursive: true });
+  const small = extractZip(file, rawDir);
+
+  const dbName = ['collection.anki21b', 'collection.anki21', 'collection.anki2'].find((n) => small[n]);
+  if (!dbName) throw new ImportError('This file does not contain an Anki collection. Is it an .apkg or .colpkg file?');
+  const { data, warnings } = readCollection(maybeZstd(small[dbName]), tmpDir, dbName);
 
   let mediaCount = 0;
   const map = mediaMap(small);
@@ -171,4 +179,4 @@ function parseApkg(file, tmpDir) {
   return { ...data, mediaDir, mediaCount, warnings, format: dbName };
 }
 
-module.exports = { parseApkg, ImportError };
+module.exports = { parseApkg, readCollection, ImportError };
